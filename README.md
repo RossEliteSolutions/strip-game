@@ -1,0 +1,2 @@
+# strip-game
+cool shit
