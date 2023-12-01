@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Catch the Stars Game</title>
+  <style>
+    body {
+      text-align: center;
+      background-image: url('hatter.png');
+        background-size: cover; /* This will ensure the image covers the whole page */
+        background-repeat: no-repeat; /* This will prevent the image from repeating */
+    }
+
+    #gameArea {
+      width: 400px;
+      height: 500px;
+      position: relative;
+      background-color: #5D3FD3 ;
+      margin: 20px auto;
+      border: 5px #C724B1 solid;
+      border-radius: 5%;
+    }
+
+    #player {
+      width: 50px;
+      height: 50px;
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      background-image: url('reduced.png');
+      background-size: cover;
+
+    }
+
+    .star {
+      width: 30px;
+      height: 30px;
+      position: absolute;
+      background-image: url('csillag.png');
+      background-size: cover;
+
+
+    }
+
+    .kulso {
+      width: 400px;
+      height: 500px;
+      position: relative;
+      margin: 20px auto;
+      display: flex;
+      /* Enable flexbox */
+      flex-direction: column;
+      /* Stack children vertically */
+      justify-content: center;
+      /* Center children vertically */
+      align-items: center;
+      /* Center children horizontally */
+    }
+
+    #newGame {
+      display: block;
+      width: 200px;
+      /* Adjust as needed */
+      padding: 10px;
+      margin: 0 auto;
+      /* Center the button */
+      background-color: #8a2be2;
+      /* Vibrant purple */
+      color: #ffd700;
+      /* Bright yellow text */
+      border: none;
+      border-radius: 5px;
+      font-family: 'Press Start 2P', cursive;
+      /* Retro, pixelated font */
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s;
+    }
+
+    #newGame:hover {
+      background-color: #7b68ee;
+      /* Slightly lighter purple on hover */
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+    }
+    #score {
+    background-color: #8a2be2;
+    border: 2px solid #C724B1; /* Neon-like border color */
+    color: #ffd700;
+    padding: 5px 120px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 18px;
+    font-family: 'Courier New', Courier, monospace; /* Futuristic font */
+    margin: 4px 2px;
+    cursor: pointer;
+    box-shadow: 0 0 10px #C724B1, 0 0 20px #C724B1; /* Neon glow effect */
+    transition: background-color 0.3s, box-shadow 0.3s;
+    border-radius: 5%;
+  
+}
+
+#score:hover, .score-button:focus {
+    background-color: #5D3FD3; /* Darker shade for hover and focus */
+    box-shadow: 0 0 15px #C724B1, 0 0 30px #C724B1; /* Enhanced glow effect */
+}
+
+  </style>
+</head>
+
+<body>
+
+  <div id="kulso">
+    <div id="gameArea">
+      <h1 id='score'>Score: 0</h1>
+      <div id='player'></div>
+    </div>
+    <button id='newGame' style='display: none;'>New Game</button>
+  </div>
+  <img id="scoreImage" src="./elso.png" style="position: absolute; right: 0; top: 50%;" width="250">
+
+  <script>
+    let gameArea = document.getElementById('gameArea');
+    let player = document.getElementById('player');
+    let gameWidth = gameArea.offsetWidth;
+    let gameHeight = gameArea.offsetHeight;
+    let playerSpeed = 20;
+    let fallingSpeed = 2;
+    let score = 0;
+    const STAR_INTERVAL = 500;
+
+    document.addEventListener('mousemove', (event) => {
+      const gameAreaRect = gameArea.getBoundingClientRect();
+      const halfPlayerWidth = player.offsetWidth / 2;
+      let mouseX = event.clientX - gameAreaRect.left;
+
+      // Adjusting the boundaries
+      if (mouseX < -halfPlayerWidth) mouseX = halfPlayerWidth;
+      if (mouseX > gameAreaRect.width - halfPlayerWidth) {
+        mouseX = gameAreaRect.width - halfPlayerWidth;
+      }
+
+      player.style.left = mouseX + 'px';
+    });
+
+    function createStar() {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.left = Math.random() * (gameArea.offsetWidth - 20) + 'px';
+      star.style.top = '0px';  // Set initial top position
+      gameArea.appendChild(star);
+      moveStar(star);
+    }
+
+    function moveStar(star) {
+      let moveInterval = setInterval(function () {
+        star.style.top = (star.offsetTop + fallingSpeed) + 'px';
+
+        // Check if star is caught
+        if (isCaught(star)) {
+          clearInterval(moveInterval);
+          gameArea.removeChild(star);
+          score++;
+          document.getElementById('score').innerText = 'Score: ' + score;
+          updateScoreImage(score);
+        }
+        // Check if star reaches the bottom without being caught
+        else if (star.offsetTop >= gameArea.offsetHeight - star.offsetHeight) {
+          clearInterval(moveInterval);
+          gameArea.removeChild(star);
+          endGame(); // End the game
+        }
+      }, 10);
+    }
+    function updateScoreImage(score) {
+      let scoreImage = document.getElementById('scoreImage');
+      if (score >= 50) {
+        scoreImage.src = 'https://placehold.co/210x420';
+      } else if (score >= 40) {
+        scoreImage.src = './harmadik.png';
+      } else if (score >= 30) {
+        scoreImage.src = './negyedik.png';
+      } else if (score >= 20) {
+        scoreImage.src = './harmadik.png';
+      } else if (score >= 10) {
+        scoreImage.src = './masodik.png';
+      }
+    }
+
+    function isCaught(star) {
+      let starRect = star.getBoundingClientRect();
+      let playerRect = player.getBoundingClientRect();
+      return !(starRect.bottom < playerRect.top ||
+        starRect.top > playerRect.bottom ||
+        starRect.right < playerRect.left ||
+        starRect.left > playerRect.right);
+    }
+
+    function endGame() {
+      document.getElementById('newGame').style.display = 'block';
+      clearInterval(interval); // Clear the interval for generating stars
+
+      // Remove all stars
+      const stars = document.querySelectorAll('.star');
+      stars.forEach(star => gameArea.removeChild(star));
+    }
+
+
+    let interval = setInterval(createStar, STAR_INTERVAL); // Adjust as needed
+
+
+    document.getElementById('newGame').addEventListener('click', function () {
+      score = 0;
+      document.getElementById('score').innerText = 'Score: ' + score;
+      this.style.display = 'none';
+
+      // Clear existing stars (if any remain)
+      const stars = document.querySelectorAll('.star');
+      stars.forEach(star => gameArea.removeChild(star));
+
+      // Restart the star generation
+      interval = setInterval(createStar, STAR_INTERVAL); // Adjust time as needed
+    });
+
+  </script>
+
+</body>
+
+</html>
